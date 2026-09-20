@@ -3,20 +3,22 @@ import io
 import os
 import tempfile
 
-import colorgram
-import cv2
 import qrcode
 from flask import render_template, request
-from rembg import remove
 from PIL import Image, ImageColor, ImageDraw, ImageOps
 from pypdf import PdfReader
-from pdf2docx import Converter
 
 from app.utils import allowed_image_file, allowed_pdf_file, allowed_video_file
 
+remove = None
+
 
 def _smart_background_remove(image):
-    output = remove(image, alpha_matting=False)
+    background_remover = remove
+    if background_remover is None:
+        from rembg import remove as background_remover
+
+    output = background_remover(image, alpha_matting=False)
 
     if isinstance(output, bytes):
         output = Image.open(io.BytesIO(output)).convert("RGBA")
@@ -24,6 +26,8 @@ def _smart_background_remove(image):
 
 
 def _video_to_gif(video_bytes, suffix):
+    import cv2
+
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as source_file:
         source_file.write(video_bytes)
         source_path = source_file.name
@@ -121,6 +125,8 @@ def _photos_to_gif(uploaded_files, delays, loop, crossfade, stack_frames, use_fi
 
 
 def _pdf_to_docx(pdf_bytes):
+    from pdf2docx import Converter
+
     reader = PdfReader(io.BytesIO(pdf_bytes))
     if not any((page.extract_text() or "").strip() for page in reader.pages):
         raise ValueError("This PDF does not contain selectable text. Scanned PDFs need OCR before conversion.")
@@ -364,6 +370,8 @@ def init_routes(app):
 
     @app.route("/color-extractor", methods=["GET", "POST"])
     def color_extractor():
+        import colorgram
+
         image_data = None
         colors = []
         error_message = None
