@@ -1,6 +1,7 @@
 # Tool Manager
 
 A Python Flask mini-app for creative utilities including QR generation, background removal, and color extraction.
+Made this cause I dont trust other sites and the paywall is making me angy
 
 ## Setup
 
