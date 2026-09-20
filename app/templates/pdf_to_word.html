@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}PDF to Word{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <a class="button" href="{{ url_for('index') }}">Back to tools</a>
+        <h2>PDF to Word</h2>
+        <p>Convert a text-based PDF into an editable Word document.</p>
+    </div>
+
+    <div class="box">
+        <form method="post" enctype="multipart/form-data">
+            <label for="pdf">Choose a PDF</label>
+            <input type="file" id="pdf" name="pdf" accept="application/pdf,.pdf" required>
+            <button type="submit" class="button">Convert to Word</button>
+        </form>
+
+        {% if error_message %}
+            <div class="alert" style="margin-top: 20px;">{{ error_message }}</div>
+        {% endif %}
+
+        {% if document_data %}
+            <div style="margin-top: 28px; text-align: center;">
+                <a class="button" href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{{ document_data }}" download="converted-document.docx">Download Word document</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

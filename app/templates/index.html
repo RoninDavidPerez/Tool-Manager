@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Tool Manager{% endblock %}
+
+{% block content %}
+    <section class="grid">
+        {% for tool in tools %}
+            <article class="card">
+                <div class="card-top">
+                    <span class="tool-icon">{{ tool.icon }}</span>
+                    <h3>{{ tool.name }}</h3>
+                </div>
+                <p>{{ tool.description }}</p>
+                <a href="{{ tool.href }}" class="button">Open tool</a>
+            </article>
+        {% endfor %}
+    </section>
+{% endblock %}

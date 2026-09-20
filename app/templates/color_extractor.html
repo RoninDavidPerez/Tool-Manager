@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Color Extractor{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <a class="button" href="{{ url_for('index') }}">Back to tools</a>
+        <h2>Color Extractor</h2>
+        <p>Upload an image and pull out the dominant HEX colors.</p>
+    </div>
+
+    <div class="box">
+        <form method="post" enctype="multipart/form-data">
+            <label for="image">Choose an image</label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+            <button type="submit" class="button">Extract colors</button>
+        </form>
+
+        {% if error_message %}
+            <div class="alert" style="margin-top: 20px;">{{ error_message }}</div>
+        {% endif %}
+
+        {% if image_data %}
+            <div style="margin-top: 28px; text-align: center;">
+                <img src="{{ image_data }}" alt="Original upload" style="max-width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; background: white; padding: 12px;" />
+            </div>
+        {% endif %}
+
+        {% if colors %}
+            <div style="margin-top: 28px;">
+                <h3 style="margin-bottom: 16px;">Color palette</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    {% for color in colors %}
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: {{ color }}; border: 1px solid #ddd;"></div>
+                            <strong>{{ color }}</strong>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

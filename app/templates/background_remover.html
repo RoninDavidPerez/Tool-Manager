@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Background Remover{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <a class="button" href="{{ url_for('index') }}">Back to tools</a>
+        <h2>Background Remover</h2>
+        <p>Upload a photo and remove the background instantly.</p>
+    </div>
+
+    <div class="box">
+        <form method="post" enctype="multipart/form-data">
+            <label for="image">Choose an image</label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+            <button type="submit" class="button">Remove background</button>
+        </form>
+
+        {% if error_message %}
+            <div class="alert" style="margin-top: 20px;">{{ error_message }}</div>
+        {% endif %}
+
+        {% if image_data %}
+            <div style="margin-top: 28px; text-align: center;">
+                <img src="{{ image_data }}" alt="Background removed" style="max-width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; background: transparent; padding: 12px;" />
+                {% if download_data %}
+                    <div style="margin-top: 16px;">
+                        <a class="button" href="data:image/png;base64,{{ download_data }}" download="background-removed.png">Download PNG</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

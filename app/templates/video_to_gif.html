@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}GIF Maker{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <a class="button" href="{{ url_for('index') }}">Back to tools</a>
+        <h2>GIF Maker</h2>
+        <p>Create an animated GIF from a short video clip or a photo sequence.</p>
+    </div>
+
+    <div class="box">
+        <form method="post" enctype="multipart/form-data">
+            <label for="video">Choose a video</label>
+            <input type="file" id="video" name="video" accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska" required>
+            <button type="submit" class="button">Convert to GIF</button>
+        </form>
+
+        <form method="post" enctype="multipart/form-data" id="photo-gif-form" style="margin-top: 28px;">
+            <label for="photos">Choose photos</label>
+            <input type="file" id="photos" name="photos" accept="image/png,image/jpeg,image/webp" multiple required>
+            <div id="frame-editor" class="frame-editor" hidden>
+                <div class="frame-editor-heading">
+                    <h3>Frames</h3>
+                    <button class="button secondary-button" type="button" id="add-frames">Add frames</button>
+                </div>
+                <div class="frame-list" id="frame-list"></div>
+
+                <div class="frame-controls">
+                    <h3>Frame selection</h3>
+                    <div class="control-row">
+                        <label>From <input type="number" id="range-from" min="1" value="1"></label>
+                        <label>To <input type="number" id="range-to" min="1" value="1"></label>
+                        <button class="button secondary-button" type="button" id="enable-range">Enable range</button>
+                        <button class="button secondary-button" type="button" id="skip-range">Skip range</button>
+                    </div>
+                    <div class="control-row">
+                        <label>Every <input type="number" id="every-nth" min="2" value="2"> frame</label>
+                        <button class="button secondary-button" type="button" id="enable-nth">Enable</button>
+                        <button class="button secondary-button" type="button" id="skip-nth">Skip</button>
+                    </div>
+                </div>
+
+                <div class="frame-controls">
+                    <h3>GIF options</h3>
+                    <div class="control-row">
+                        <label>Global delay <input type="number" name="global_delay" id="global-delay" min="1" value="35"> hundredths of a second</label>
+                        <label>Loop count <input type="number" name="loop_count" min="0" placeholder="Forever"></label>
+                    </div>
+                    <label class="check-label"><input type="checkbox" name="optimize_palette" checked> Optimize color palette</label>
+                </div>
+
+                <div class="frame-controls">
+                    <h3>Effects</h3>
+                    <label class="check-label"><input type="checkbox" name="crossfade"> Crossfade between frames</label>
+                    <label class="check-label"><input type="checkbox" name="stack_frames"> Stack frames</label>
+                    <label class="check-label"><input type="checkbox" name="first_frame_background"> Use first frame as background</label>
+                </div>
+            </div>
+            <button type="submit" class="button">Make GIF from photos</button>
+        </form>
+
+        {% if error_message %}
+            <div class="alert" style="margin-top: 20px;">{{ error_message }}</div>
+        {% endif %}
+
+        {% if gif_data %}
+            <div style="margin-top: 28px; text-align: center;">
+                <img src="data:image/gif;base64,{{ gif_data }}" alt="Converted animated GIF" style="max-width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; background: white; padding: 12px;" />
+                <div style="margin-top: 16px;">
+                    <a class="button" href="data:image/gif;base64,{{ gif_data }}" download="converted-video.gif">Download GIF</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const photoInput = document.getElementById("photos");
+    const frameEditor = document.getElementById("frame-editor");
+    const frameList = document.getElementById("frame-list");
+    const globalDelay = document.getElementById("global-delay");
+    let frameFiles = [];
+
+    function renderFrames() {
+        frameList.innerHTML = "";
+        document.getElementById("range-to").value = frameFiles.length;
+        frameFiles.forEach((file, index) => {
+            const card = document.createElement("article");
+            card.className = "frame-card";
+            card.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Frame ${index + 1} preview"><span>Frame ${index + 1}</span><label>Delay <input name="frame_delay" type="number" min="1" value="${globalDelay.value}"></label><label class="check-label"><input name="frame_toggle" type="checkbox" checked> Include</label><button class="button secondary-button" type="button">Copy</button>`;
+            card.querySelector("button").addEventListener("click", () => {
+                frameFiles.splice(index + 1, 0, file);
+                syncInput();
+                renderFrames();
+            });
+            frameList.appendChild(card);
+        });
+        frameEditor.hidden = !frameFiles.length;
+    }
+
+    function syncInput() {
+        const transfer = new DataTransfer();
+        frameFiles.forEach((file) => transfer.items.add(file));
+        photoInput.files = transfer.files;
+    }
+
+    function setFrameState(predicate, enabled) {
+        [...document.querySelectorAll("input[name='frame_toggle']")].forEach((input, index) => {
+            if (predicate(index + 1)) input.checked = enabled;
+        });
+    }
+
+    photoInput.addEventListener("change", () => {
+        frameFiles = [...photoInput.files];
+        renderFrames();
+    });
+    document.getElementById("add-frames").addEventListener("click", () => photoInput.click());
+    globalDelay.addEventListener("change", () => document.querySelectorAll("input[name='frame_delay']").forEach((input) => input.value = globalDelay.value));
+    document.getElementById("photo-gif-form").addEventListener("submit", (event) => {
+        document.querySelectorAll("input[name='frame_enabled']").forEach((input) => input.remove());
+        document.querySelectorAll("input[name='frame_toggle']").forEach((input) => {
+            const enabled = document.createElement("input");
+            enabled.type = "hidden";
+            enabled.name = "frame_enabled";
+            enabled.value = input.checked ? "on" : "off";
+            event.currentTarget.appendChild(enabled);
+        });
+    });
+    ["enable-range", "skip-range"].forEach((id) => document.getElementById(id).addEventListener("click", () => {
+        const start = Number(document.getElementById("range-from").value);
+        const end = Number(document.getElementById("range-to").value);
+        setFrameState((index) => index >= start && index <= end, id === "enable-range");
+    }));
+    ["enable-nth", "skip-nth"].forEach((id) => document.getElementById(id).addEventListener("click", () => {
+        const every = Number(document.getElementById("every-nth").value);
+        setFrameState((index) => every > 1 && index % every === 0, id === "enable-nth");
+    }));
+</script>
+{% endblock %}

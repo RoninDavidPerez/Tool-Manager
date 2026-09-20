@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h2>{{ title }}</h2>
+        <p>This tool is coming soon.</p>
+    </div>
+
+    <div class="box">
+        <div class="alert">
+            We’re setting up this feature next. The project shell is ready, and this page will be replaced with the real tool once it is built.
+        </div>
+        <a href="{{ url_for('index') }}" class="button">Back to home</a>
+    </div>
+{% endblock %}

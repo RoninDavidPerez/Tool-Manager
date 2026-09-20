@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Generator{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <a class="button" href="{{ url_for('index') }}">Back to tools</a>
+        <h2>QR Generator</h2>
+        <p>Create a QR code from any text or URL.</p>
+    </div>
+
+    <div class="box">
+        <form method="post">
+            <label for="qr_text">Text or URL</label>
+            <textarea id="qr_text" name="qr_text" placeholder="Enter text, a URL, or contact details...">{{ qr_text }}</textarea>
+
+            <label for="qr_color">QR color</label>
+            <input type="color" id="qr_color" name="qr_color" value="{{ qr_color }}" style="width: 100%; height: 48px; padding: 0; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 16px;">
+
+            <label for="transparent_bg" style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <input type="checkbox" id="transparent_bg" name="transparent_bg" {% if transparent_bg %}checked{% endif %}>
+                Transparent background
+            </label>
+
+            <label for="circular_qr" style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <input type="checkbox" id="circular_qr" name="circular_qr" {% if circular_qr %}checked{% endif %}>
+                Generate circular dots
+            </label>
+
+            <button type="submit" class="button">Generate QR Code</button>
+        </form>
+
+        {% if error_message %}
+            <div class="alert" style="margin-top: 20px;">{{ error_message }}</div>
+        {% endif %}
+
+        {% if qr_image %}
+            <div style="margin-top: 28px; text-align: center;">
+                <img src="{{ qr_image }}" alt="Generated QR code" style="max-width: 300px; width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; background: {% if transparent_bg %}transparent{% else %}white{% endif %}; padding: 12px;" />
+                {% if qr_download %}
+                    <div style="margin-top: 16px;">
+                        <a class="button" href="data:image/png;base64,{{ qr_download }}" download="qr-code.png">Download PNG</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
